@@ -3,11 +3,17 @@
 # ------------------------------------------------------
 
 type Mutation {
-  signup(signinInput: SignUpInput!): SignResponse!
+  signin(signinInput: SignInInput!): SignResponse!
+  signup(signupInput: SignUpInput!): SignResponse!
 }
 
 type Query {
   sayHello: String!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
 }
 
 type SignResponse {

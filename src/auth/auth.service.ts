@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { SignInInput } from './dto/signin-input';
 import { SignUpInput } from './dto/signup-input';
 @Injectable()
 export class AuthService {
@@ -11,12 +12,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
-  async signup(signinInput: SignUpInput) {
-    const hashedPassword = await argon2.hash(signinInput.password);
+  async signup(signupInput: SignUpInput) {
+    const hashedPassword = await argon2.hash(signupInput.password);
     const user = await this.prisma.user.create({
       data: {
-        email: signinInput.email,
-        username: signinInput.username,
+        email: signupInput.email,
+        username: signupInput.username,
         hashedPassword,
       },
     });
@@ -52,6 +53,29 @@ export class AuthService {
     );
 
     return { accessToken, refreshToken };
+  }
+  async signin(signinInput: SignInInput) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: signinInput.email },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const isPasswordValid = await argon2.verify(
+      await user.hashedPassword,
+      signinInput.password,
+    );
+    if (!isPasswordValid) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const { accessToken, refreshToken } = await this.createToken(
+      user.id,
+      user.email,
+    );
+    await this.updateRefreshToken(user.id, refreshToken);
+
+    return { accessToken, refreshToken, user };
   }
 
   async updateRefreshToken(userId: number, refreshToken: string) {
