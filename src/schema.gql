@@ -2,7 +2,12 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type LogoutResponse {
+  loggedOut: Boolean!
+}
+
 type Mutation {
+  logout(id: Float!): LogoutResponse!
   signin(signinInput: SignInInput!): SignResponse!
   signup(signupInput: SignUpInput!): SignResponse!
 }

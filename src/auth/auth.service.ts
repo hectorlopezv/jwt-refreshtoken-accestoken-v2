@@ -12,6 +12,20 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
+
+  async logout(userId: number) {
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        hashedRefreshToken: { not: null },
+      },
+      data: {
+        hashedRefreshToken: null,
+      },
+    });
+
+    return { loggedOut: true };
+  }
   async signup(signupInput: SignUpInput) {
     const hashedPassword = await argon2.hash(signupInput.password);
     const user = await this.prisma.user.create({
