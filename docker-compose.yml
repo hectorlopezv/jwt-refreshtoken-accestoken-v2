@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_USER=root
+      - POSTGRES_DB=nestjs_graphql_prisma
+    ports:
+      - '5432:5432'
