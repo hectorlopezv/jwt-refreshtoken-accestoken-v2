@@ -50,7 +50,7 @@ export class AuthService {
         email,
       },
       {
-        expiresIn: '10s',
+        expiresIn: '1h',
         secret: this.configService.get('ACCESS_TOKEN_SECRET'),
       },
     );
@@ -98,5 +98,28 @@ export class AuthService {
       where: { id: userId },
       data: { hashedRefreshToken: hashedRefreshToken },
     });
+  }
+  async getNewTokens(userId: number, rt: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const doRefreshTokenMatch = await argon2.verify(
+      user.hashedRefreshToken,
+      rt,
+    );
+    if (!doRefreshTokenMatch) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const { accessToken, refreshToken } = await this.createToken(
+      user.id,
+      user.email,
+    );
+    await this.updateRefreshToken(user.id, refreshToken);
+    return { accessToken, refreshToken, user };
   }
 }

@@ -7,9 +7,15 @@ type LogoutResponse {
 }
 
 type Mutation {
+  getNewToken: NewTokensReponse!
   logout(id: Float!): LogoutResponse!
   signin(signinInput: SignInInput!): SignResponse!
   signup(signupInput: SignUpInput!): SignResponse!
+}
+
+type NewTokensReponse {
+  accessToken: String!
+  refreshToken: String!
 }
 
 type Query {
